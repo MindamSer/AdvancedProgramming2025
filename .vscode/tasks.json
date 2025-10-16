@@ -6,13 +6,13 @@
     {
       "label": "cmake build Debug",
       "type": "shell",
-      "command": "cmake -S . -B build -DSDL3_DIR=\"C:/libs/SDL3/cmake\" && cmake --build build --config Debug",
+      "command": "cmake -S . -B build && cmake --build build --config Debug",
       "problemMatcher": []
     },
     {
       "label": "cmake build Release",
       "type": "shell",
-      "command": "cmake -S . -B build -DSDL3_DIR=\"C:/libs/SDL3/cmake\" && cmake --build build --config RelWithDebInfo",
+      "command": "cmake -S . -B build && cmake --build build --config RelWithDebInfo",
       "problemMatcher": []
     }
   ]

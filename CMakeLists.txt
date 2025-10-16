@@ -19,6 +19,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 )
 
 # --- Ищем SDL3 ---
+set(SDL3_DIR C:/libs/SDL3/cmake)
 find_package(SDL3 REQUIRED CONFIG)
 
 # --- Линкуем SDL3 ---
