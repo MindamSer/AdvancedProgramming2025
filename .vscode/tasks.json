@@ -4,16 +4,34 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "cmake build Debug",
+      "label": "cmake configure",
       "type": "shell",
-      "command": "cmake -S . -B build -DSDL3_DIR=\"C:/libs/SDL3/cmake\" && cmake --build build --config Debug",
-      "problemMatcher": []
+      "command": "cmake -S . -B build -G Ninja",
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "clear": true,
+      }
     },
     {
-      "label": "cmake build Release",
+      "label": "cmake build",
       "type": "shell",
-      "command": "cmake -S . -B build -DSDL3_DIR=\"C:/libs/SDL3/cmake\" && cmake --build build --config RelWithDebInfo",
-      "problemMatcher": []
-    }
+      "command": "cmake --build build --config ${config:launchOption.currentConfig.BuildType}",
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "clear": true,
+      }
+    },
+    {
+      "label": "copy dll",
+      "type": "shell",
+      "command": "cp C:/libs/SDL3/lib/x64/SDL3.dll build/SDL3.dll",
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "clear": true,
+      }
+    },
   ]
 }

@@ -1,5 +1,4 @@
 {
-    "C_Cpp.intelliSenseEngine": "Tag Parser",
     "files.associations": {
         "format": "cpp",
         "vector": "cpp",
@@ -72,5 +71,16 @@
         "set": "cpp",
         "stacktrace": "cpp"
     },
-    "launchOption.currentConfig": {}
+    "C_Cpp.intelliSenseEngine": "disabled",
+
+    "launchOption.currentConfig": {
+        "BuildType": "Debug"
+    },
+    "launchOption.options": {
+        "BuildType": [
+            "Debug",
+            "RelWithDebInfo",
+            "Release",
+        ]
+    },
 }

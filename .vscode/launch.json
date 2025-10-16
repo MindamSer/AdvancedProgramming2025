@@ -5,23 +5,12 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Launch Debug",
+      "name": "Launch game",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/Debug/AdvancedProgramming.exe",
+      "program": "${workspaceFolder}/build/AdvancedProgramming.exe",
       "args": [],
       "cwd": "${workspaceFolder}",
-      "preLaunchTask": "cmake build Debug",
     },
-    {
-      "name": "Launch Release",
-      "type": "cppvsdbg",
-      "request": "launch",
-      "program": "${workspaceFolder}/build/RelWithDebInfo/AdvancedProgramming.exe",
-      "args": [],
-      "cwd": "${workspaceFolder}",
-      "preLaunchTask": "cmake build Release",
-    }
-
   ]
 }
