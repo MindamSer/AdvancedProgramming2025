@@ -1,9 +1,11 @@
 #include <SDL3/SDL.h>
-#include <iostream>
-#include <vector>
-#include "optick.h"
+
 #include "world.h"
-#include <stacktrace>
+#include "optick.h"
+
+#include <iostream>
+#include <memory>
+
 
 void init_world(SDL_Renderer* renderer, World& world);
 void render_world(SDL_Window* window, SDL_Renderer* renderer, World& world);
@@ -17,11 +19,10 @@ int main(int argc, char* argv[])
     }
 
     SDL_Window* window = SDL_CreateWindow(
-        "Advanced Programming Course(Last Name/First Name)",
+        "Advanced Programming Course - Androsov Artem",
         1600, 1200,
         SDL_WINDOW_RESIZABLE // вместо SDL_WINDOW_SHOWN
     );
-
     if (!window) {
         std::cerr << "Window could not be created! SDL_Error: "
                   << SDL_GetError() << std::endl;
@@ -40,33 +41,40 @@ int main(int argc, char* argv[])
 
     {
         auto world = std::make_shared<World>();
-
         {
             OPTICK_EVENT("world.init");
+            // Инициализация всех игровых объектов
             init_world(renderer, *world);
         }
 
         bool quit = false;
         SDL_Event e;
-        Uint64 lastTicks = SDL_GetTicks();
 
+        Uint64 lastFrameTicks;
+        Uint64 currFrameTicks;
+        float deltaTime;
+
+        lastFrameTicks = SDL_GetTicks();
         while (!quit) {
-
 	        OPTICK_FRAME("MainThread");
+
             while (SDL_PollEvent(&e)) {
                 if (e.type == SDL_EVENT_QUIT) {
                     quit = true;
                 }
             }
-            Uint64 now = SDL_GetTicks();
-            float deltaTime = (now - lastTicks) / 1000.0f;
-            lastTicks = now;
+
+            // Обновление времени
+            currFrameTicks = SDL_GetTicks();
+            deltaTime = (currFrameTicks - lastFrameTicks) / 1000.0f;
+            lastFrameTicks = currFrameTicks;
+
             {
                 OPTICK_EVENT("world.update");
+                // Обновление всех игровых объектов
                 world->update(deltaTime);
             }
 
-            // Теперь сразу цвет внутри Clear
             SDL_SetRenderDrawColor(renderer, 50, 50, 150, 255);
             SDL_RenderClear(renderer);
             {
@@ -74,7 +82,6 @@ int main(int argc, char* argv[])
                 // Отрисовка всех игровых объектов
                 render_world(window, renderer, *world);
             }
-
             SDL_RenderPresent(renderer);
         }
     }
