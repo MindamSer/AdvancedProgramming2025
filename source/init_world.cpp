@@ -19,12 +19,16 @@
 #include "background_tag.h"
 #include "predator.h"
 
+#include <iostream>
+
+
 const int LevelWidth = 120;
 const int LevelHeight = 50;
 const int RoomAttempts = 100;
 const int BotPopulationCount = 100;
 const float PredatorProbability = 0.2f;
 const int InitialFoodAmount = 100;
+
 
 std::vector<std::unique_ptr<IFoodFabrique>> create_food_fabriques(World &world, TileSet &tileset);
 
@@ -66,9 +70,9 @@ void init_world( SDL_Renderer* renderer, World& world)
         for (int j = 0; j < LevelWidth; ++j)
         {
             const char * spriteName = nullptr;
-            if (grid[i][j] == Dungeon::FLOOR) {
+            if (grid.getTile(j, i) == Dungeon::FLOOR) {
                 spriteName = rand() % 2 == 0 ? "floor1" : "floor2";
-            } else if (grid[i][j] == Dungeon::WALL) {
+            } else if (grid.getTile(j, i) == Dungeon::WALL) {
                 spriteName = "wall";
             }
             if (spriteName) {

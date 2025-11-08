@@ -14,8 +14,8 @@ public:
         const auto &grid = dungeon->getGrid();
         int x = coordinates.x;
         int y = coordinates.y;
-        if (x < 0 || y < 0 || y >= (int)grid.size() || x >= (int)grid[0].size())
+        if (x < 0 || y < 0 || y >= (int)grid.getHeight() || x >= (int)grid.getWidth())
             return false;
-        return grid[y][x] == Dungeon::FLOOR;
+        return grid.getTile(x, y) == Dungeon::FLOOR;
     }
 };
