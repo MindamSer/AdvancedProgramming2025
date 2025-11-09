@@ -4,9 +4,19 @@
 #include <memory>
 #include <vector>
 
+#include "transform2d.h"
+#include "sprite.h"
 
 
-class World : public std::enable_shared_from_this<World> {
+class World : public std::enable_shared_from_this<World>
+{
+public:
+    struct TileObject
+    {
+        Sprite sprite;
+        Transform2D transform;
+    };
+
 public:
     std::shared_ptr<GameObject> create_object() {
         auto obj = std::make_shared<GameObject>();
@@ -36,6 +46,11 @@ public:
         return objects;
     }
 
+    std::vector<TileObject>& get_tiles() { return tiles; }
+    const std::vector<TileObject>& get_tiles() const { return tiles; }
+
 private:
     std::vector<std::shared_ptr<GameObject>> objects, delayedRemove, delayedAdd;
+
+    std::vector<TileObject> tiles;
 };

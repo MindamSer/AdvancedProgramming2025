@@ -24,18 +24,11 @@ void render_world(SDL_Window* window, SDL_Renderer* renderer, World& world)
         return;
 
     // Draw background sprites
-    for (const auto& object : world.get_objects()) {
-        auto sprite = object->get_component<Sprite>();
-        auto transform = object->get_component<Transform2D>();
-        auto bgTag = object->get_component<BackGroundTag>();
-        if (!bgTag)
-            continue;
-        if (!sprite || !transform)
-            continue;
-        SDL_FRect dst = to_camera_space(*transform, *camera_transform, *camera2d);
+    for (const auto& tile : world.get_tiles()) {
+        SDL_FRect dst = to_camera_space(tile.transform, *camera_transform, *camera2d);
         dst.x += screenW / 2;
         dst.y += screenH / 2;
-        DrawSprite(renderer, *sprite, dst);
+        DrawSprite(renderer, tile.sprite, dst);
     }
 
     // Draw foreground sprites

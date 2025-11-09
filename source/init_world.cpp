@@ -65,22 +65,26 @@ void init_world( SDL_Renderer* renderer, World& world)
     }
 
     auto dungeon = std::make_shared<Dungeon>(LevelWidth, LevelHeight, RoomAttempts);
-    const auto &grid = dungeon->getGrid();
-    for (int i = 0; i < LevelHeight; ++i)
-        for (int j = 0; j < LevelWidth; ++j)
+    const auto &dungeonGrid = dungeon->getGrid();
+    const size_t tileCount = dungeonGrid.getTileCount();
+
+    auto &worldTiles = world.get_tiles();
+    worldTiles.reserve(tileCount);
+
+    for (int y = 0; y < LevelHeight; ++y)
+        for (int x = 0; x < LevelWidth; ++x)
         {
             const char * spriteName = nullptr;
-            if (grid.getTile(j, i) == Dungeon::FLOOR) {
+            if (dungeonGrid.getTile(x, y) == Dungeon::FLOOR)
                 spriteName = rand() % 2 == 0 ? "floor1" : "floor2";
-            } else if (grid.getTile(j, i) == Dungeon::WALL) {
+            else if (dungeonGrid.getTile(x, y) == Dungeon::WALL)
                 spriteName = "wall";
-            }
-            if (spriteName) {
-                auto newCell = world.create_object();
-                newCell->add_component<Sprite>(tileset.get_tile(spriteName));
-                newCell->add_component<Transform2D>(j, i);
-                newCell->add_component<BackGroundTag>();
-            }
+
+            if (spriteName)
+                worldTiles.push_back({
+                    tileset.get_tile(spriteName),
+                    Transform2D(x, y)
+                });
         }
 
     auto heroPos = dungeon->getRandomFloorPosition();
