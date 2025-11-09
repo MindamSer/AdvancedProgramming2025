@@ -4,27 +4,22 @@
 #include "stamina.h"
 #include <SDL3/SDL.h>
 #include <algorithm>
+#include "camera2d.h"
 
 class Hero : public Component {
 private:
     float timeSinceLastMode = 0.f; // seconds between movement steps
-    GameObjectPtr mainCamera;
+    Camera2D &mainCamera;
 
     void bind_camera_transform() {
         auto transform = get_owner()->get_component<Transform2D>();
-
-        if (mainCamera && transform) {
-            auto camTransform = mainCamera->get_component<Transform2D>();
-            if (camTransform) {
-                camTransform->x = transform->x;
-                camTransform->y = transform->y;
-            }
-        }
+        if (transform)
+            mainCamera.position = *transform;
     }
 
 public:
-    Hero(GameObjectPtr mainCamera = nullptr)
-        : mainCamera(mainCamera) {}
+    Hero(Camera2D &camera)
+        : mainCamera(camera) {}
 
     void on_create() override {
         bind_camera_transform();

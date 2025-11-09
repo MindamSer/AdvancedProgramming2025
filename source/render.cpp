@@ -11,21 +11,12 @@ void render_world(SDL_Window* window, SDL_Renderer* renderer, World& world)
 {
     int screenW, screenH;
     SDL_GetWindowSize(window, &screenW, &screenH);
-    // search of camera component
-    std::shared_ptr<Camera2D> camera2d = nullptr;
-    std::shared_ptr<Transform2D> camera_transform = nullptr;
-    for (const auto& object : world.get_objects()) {
-        camera2d = object->get_component<Camera2D>();
-        camera_transform = object->get_component<Transform2D>();
-        if (camera2d && camera_transform)
-            break;
-    }
-    if (!camera2d || !camera_transform)
-        return;
+
+    const auto &worldCamera = world.get_camera();
 
     // Draw background sprites
     for (const auto& tile : world.get_tiles()) {
-        SDL_FRect dst = to_camera_space(tile.transform, *camera_transform, *camera2d);
+        SDL_FRect dst = worldCamera.to_camera_space(tile.transform);
         dst.x += screenW / 2;
         dst.y += screenH / 2;
         DrawSprite(renderer, tile.sprite, dst);
@@ -40,7 +31,7 @@ void render_world(SDL_Window* window, SDL_Renderer* renderer, World& world)
             continue;
         if (!sprite || !transform)
             continue;
-        SDL_FRect dst = to_camera_space(*transform, *camera_transform, *camera2d);
+        SDL_FRect dst = worldCamera.to_camera_space(*transform);
         dst.x += screenW / 2;
         dst.y += screenH / 2;
         DrawSprite(renderer, *sprite, dst);
@@ -63,7 +54,7 @@ void render_world(SDL_Window* window, SDL_Renderer* renderer, World& world)
         {
             Transform2D barTransform = *transform;
             barTransform.sizeX *= 0.1f;
-            SDL_FRect dst = to_camera_space(barTransform, *camera_transform, *camera2d);
+            SDL_FRect dst = worldCamera.to_camera_space(barTransform);
             dst.x += screenW / 2;
             dst.y += screenH / 2;
             backBars.push_back(dst);
@@ -77,7 +68,7 @@ void render_world(SDL_Window* window, SDL_Renderer* renderer, World& world)
             Transform2D barTransform = *transform;
             barTransform.x += barTransform.sizeX * 0.9f;
             barTransform.sizeX *= 0.1f;
-            SDL_FRect dst = to_camera_space(barTransform, *camera_transform, *camera2d);
+            SDL_FRect dst = worldCamera.to_camera_space(barTransform);
             dst.x += screenW / 2;
             dst.y += screenH / 2;
             backBars.push_back(dst);

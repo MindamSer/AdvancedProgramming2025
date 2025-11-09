@@ -2,7 +2,7 @@
 #include "component.h"
 
 struct Transform2D : public Component {
-    using value_type = double;
+    using value_type = float;
     value_type x, y;
     value_type sizeX, sizeY;
     Transform2D(value_type x=0, value_type y=0, value_type sizeX=1, value_type sizeY=1)

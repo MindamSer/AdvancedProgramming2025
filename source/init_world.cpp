@@ -34,10 +34,8 @@ std::vector<std::unique_ptr<IFoodFabrique>> create_food_fabriques(World &world, 
 
 void init_world( SDL_Renderer* renderer, World& world)
 {
-
-    auto camera = world.create_object();
-    camera->add_component<Camera2D>(32.f);
-    camera->add_component<Transform2D>(0, 0);
+    auto &camera = world.get_camera();
+    camera = Camera2D(0.f, 0.f, 32.f);
 
 
     const int tileSize = 16;

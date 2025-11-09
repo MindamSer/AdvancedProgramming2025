@@ -1,5 +1,6 @@
 #pragma once
 
+#include "camera2d.h"
 #include "game_object.h"
 #include <memory>
 #include <vector>
@@ -49,8 +50,13 @@ public:
     std::vector<TileObject>& get_tiles() { return tiles; }
     const std::vector<TileObject>& get_tiles() const { return tiles; }
 
+    Camera2D& get_camera() { return mainCamera; }
+    const Camera2D& get_camera() const { return mainCamera; }
+
 private:
     std::vector<std::shared_ptr<GameObject>> objects, delayedRemove, delayedAdd;
+
+    Camera2D mainCamera;
 
     std::vector<TileObject> tiles;
 };
