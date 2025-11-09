@@ -1,11 +1,12 @@
-#include <SDL3/SDL.h>
-#include <iostream>
-
 #include "image.h"
 
-// stb_image подключаем отдельно
+#include <SDL3/SDL_render.h>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+
+#include <iostream>
+
 
 TexturePtr LoadTextureFromFile(const char* filename, SDL_Renderer* renderer)
 {

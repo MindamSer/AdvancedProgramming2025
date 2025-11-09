@@ -1,7 +1,10 @@
 #pragma once
+
 #include "component.h"
 
-struct Transform2D : public Component {
+
+struct Transform2D : public Component
+{
     using value_type = float;
     value_type x, y;
     value_type sizeX, sizeY;

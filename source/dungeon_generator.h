@@ -15,10 +15,11 @@ public:
         FLOOR
     };
 
-    struct TileGrid
+    class TileGrid
     {
     public:
-        TileGrid(int x, int y) : w(x), h(y), tiles(x * y, WALL) {}
+        TileGrid(int x, int y)
+            : w(x), h(y), tiles(x * y, WALL) {}
 
         const int getWidth() const { return w; }
         const int getHeight() const { return h; }
@@ -31,11 +32,14 @@ public:
         const int2 getNthTilePosition(int n, const Tile target) const;
         void setRectangle(int2 p0, int2 p1, const Tile target);
         void setLine(int2 p0, int2 p1, const Tile target);
-        void countFloor();
+        void countFloor() const;
 
     private:
-        int w, h, floorCount;
+        int w, h;
         std::vector<Tile> tiles;
+
+        mutable bool floorCounted;
+        mutable int floorCount;
     };
 
     struct Room
@@ -45,25 +49,23 @@ public:
         int centerY() const { return y + h / 2; }
     };
 
+public:
     Dungeon(int width, int height, int roomAttempts = 50)
-        : grid(width, height)
-    { generate(roomAttempts); }
+        : grid(width, height) { generate(roomAttempts); }
 
     const TileGrid &getGrid() const { return grid; }
 
-    int getDungeonWidth() { return grid.getWidth(); };
-    int getDungeonHeight() { return grid.getHeight(); };
-    int2 getRandomFloorPosition();
+    int getDungeonWidth() const  { return grid.getWidth(); };
+    int getDungeonHeight() const { return grid.getHeight(); };
+    int2 getRandomFloorPosition() const;
 
 private:
-    std::mt19937 randEng{ std::random_device{}() };
+    mutable std::mt19937 randEng{ std::random_device{}() };
 
     TileGrid grid;
     std::vector<Room> rooms;
 
-
     void generate(const int roomAttempts);
-
     bool placeRoom(const Room& r);
     void connectRooms(const Room& a, const Room& b);
 };

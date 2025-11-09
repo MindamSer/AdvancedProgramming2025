@@ -1,10 +1,16 @@
 #pragma once
+
 #include "sprite.h"
+
+#include <string>
 #include <map>
+
 
 struct TileSet
 {
     TexturePtr tileset;
+    std::map<std::string, Sprite> tiles;
+
     TileSet(TexturePtr tileset)
     {
         this->tileset = tileset;
@@ -19,14 +25,12 @@ struct TileSet
         add_tile("stamina_small", 10, 8);
         add_tile("stamina_large", 9, 8);
     }
-    std::map<std::string, Sprite> tiles;
+
     void add_tile(const std::string& name, int i, int j)
     {
         const int tileSize = 16;
         tiles[name] = Sprite(tileset, SDL_FRect{float(j * (tileSize + 1)), float(i * (tileSize + 1)), float(tileSize), float(tileSize)});
     }
-    Sprite get_tile(const std::string& name)
-    {
-        return tiles.at(name);
-    }
+
+    Sprite get_tile(const std::string& name) const { return tiles.at(name); }
 };

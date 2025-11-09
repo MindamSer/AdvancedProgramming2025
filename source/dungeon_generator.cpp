@@ -32,6 +32,8 @@ void Dungeon::TileGrid::setRectangle(int2 p0, int2 p1, const Tile target)
     for (int j = p0.y; j <= p1.y; ++j)
         for (int i = p0.x; i <= p1.x; ++i)
             tiles[j * w + i] = target;
+
+    floorCounted = false;
 }
 
 void Dungeon::TileGrid::setLine(int2 p0, int2 p1, const Tile target)
@@ -43,6 +45,8 @@ void Dungeon::TileGrid::setLine(int2 p0, int2 p1, const Tile target)
         for (int i = p0.x; i <= p1.x; ++i)
             tiles[p0.y * w + i] = target;
 
+        floorCounted = false;
+
         return;
     }
 
@@ -53,23 +57,30 @@ void Dungeon::TileGrid::setLine(int2 p0, int2 p1, const Tile target)
         for (int j = p0.y; j <= p1.y; ++j)
             tiles[j * w + p0.x] = target;
 
+        floorCounted = false;
+
         return;
     }
 }
 
-void Dungeon::TileGrid::countFloor()
+void Dungeon::TileGrid::countFloor() const
 {
+    if(floorCounted)
+        return;
+
     floorCount = 0;
     for (Tile t : tiles)
         if (t == FLOOR)
             floorCount++;
+    floorCounted = true;
 }
 
 
-int2 Dungeon::getRandomFloorPosition()
+int2 Dungeon::getRandomFloorPosition() const
 {
     // Возвращает случайную позицию напольного тайла
     // Не эффективно для больших карт, но сойдет для примера
+    grid.countFloor();
     return grid.getNthTilePosition(std::uniform_int_distribution<int>(0, grid.getFloorCount() - 1)(randEng), FLOOR);
 }
 
@@ -96,9 +107,6 @@ void Dungeon::generate(const int roomAttempts)
     // Соединяем комнаты коридорами
     for (size_t i = 1; i < rooms.size(); i++)
         connectRooms(rooms[i - 1], rooms[i]);
-
-    // Подсчитываем количество напольных тайлов (для getRandomFloorPosition)
-    grid.countFloor();
 }
 
 bool Dungeon::placeRoom(const Room& r)

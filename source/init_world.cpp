@@ -16,27 +16,25 @@
 #include "food_consumer.h"
 #include "starvation_system.h"
 #include "tiredness_system.h"
-#include "background_tag.h"
 #include "predator.h"
 
 #include <iostream>
 
 
-const int LevelWidth = 120;
-const int LevelHeight = 50;
-const int RoomAttempts = 100;
-const int BotPopulationCount = 100;
-const float PredatorProbability = 0.2f;
-const int InitialFoodAmount = 100;
+constexpr int LevelWidth = 120;
+constexpr int LevelHeight = 50;
+constexpr int RoomAttempts = 100;
+constexpr int BotPopulationCount = 100;
+constexpr float PredatorProbability = 0.2f;
+constexpr int InitialFoodAmount = 100;
 
 
 std::vector<std::unique_ptr<IFoodFabrique>> create_food_fabriques(World &world, TileSet &tileset);
 
-void init_world( SDL_Renderer* renderer, World& world)
+void init_world(SDL_Renderer* renderer, World& world)
 {
     auto &camera = world.get_camera();
     camera = Camera2D(0.f, 0.f, 32.f);
-
 
     const int tileSize = 16;
     TexturePtr tilemap = LoadTextureFromFile("assets/kenney_tiny-dungeon/Tilemap/tilemap.png", renderer);
@@ -47,6 +45,7 @@ void init_world( SDL_Renderer* renderer, World& world)
         return;
     }
     TileSet tileset(tilemap);
+
     // Возьмем несколько тайлов из тайлсета
     const std::vector<std::pair<int, int>> tileIndices = {
         {4, 0}, // dirty floor
@@ -55,18 +54,22 @@ void init_world( SDL_Renderer* renderer, World& world)
         {8, 1}, // knight
         {9, 0}, // ghost
     };
-    for (const auto& [i, j] : tileIndices) {
+    for (const auto& [i, j] : tileIndices)
         sprites.push_back(Sprite(
             tilemap,
-            SDL_FRect{float(j * (tileSize + 1)), float(i * (tileSize + 1)), float(tileSize), float(tileSize)}
+            SDL_FRect{
+                float(j * (tileSize + 1)),
+                float(i * (tileSize + 1)),
+                float(tileSize),
+                float(tileSize)
+            }
         ));
-    }
 
     auto dungeon = std::make_shared<Dungeon>(LevelWidth, LevelHeight, RoomAttempts);
     const auto &dungeonGrid = dungeon->getGrid();
     const size_t tileCount = dungeonGrid.getTileCount();
 
-    auto &worldTiles = world.get_tiles();
+    auto &worldTiles = world.get_backgroung_tiles();
     worldTiles.reserve(tileCount);
 
     for (int y = 0; y < LevelHeight; ++y)

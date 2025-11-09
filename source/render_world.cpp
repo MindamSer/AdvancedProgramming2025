@@ -1,11 +1,13 @@
-
 #include "world.h"
-#include "camera2d.h"
+
+#include <SDL3/SDL_video.h>
+#include <SDL3/SDL_render.h>
+
+#include "transform2d.h"
 #include "sprite.h"
 #include "health.h"
 #include "stamina.h"
-#include "background_tag.h"
-#include <SDL3/SDL_render.h>
+
 
 void render_world(SDL_Window* window, SDL_Renderer* renderer, World& world)
 {
@@ -15,27 +17,28 @@ void render_world(SDL_Window* window, SDL_Renderer* renderer, World& world)
     const auto &worldCamera = world.get_camera();
 
     // Draw background sprites
-    for (const auto& tile : world.get_tiles()) {
+    for (const auto& tile : world.get_backgroung_tiles())
+    {
         SDL_FRect dst = worldCamera.to_camera_space(tile.transform);
-        dst.x += screenW / 2;
-        dst.y += screenH / 2;
+        dst.x += screenW / 2.f;
+        dst.y += screenH / 2.f;
         DrawSprite(renderer, tile.sprite, dst);
     }
 
     // Draw foreground sprites
-    for (const auto& object : world.get_objects()) {
+    for (const auto& object : world.get_objects())
+    {
         auto sprite = object->get_component<Sprite>();
         auto transform = object->get_component<Transform2D>();
-        auto bgTag = object->get_component<BackGroundTag>();
-        if (bgTag)
-            continue;
-        if (!sprite || !transform)
-            continue;
+
+        if (!sprite || !transform) continue;
+
         SDL_FRect dst = worldCamera.to_camera_space(*transform);
-        dst.x += screenW / 2;
-        dst.y += screenH / 2;
+        dst.x += screenW / 2.f;
+        dst.y += screenH / 2.f;
         DrawSprite(renderer, *sprite, dst);
     }
+
     // Draw bars without textures and without OOP
     float grayColor[4] = {0.2f, 0.2f, 0.2f, 1.f};
     float healthColor[4] = {0.91f, 0.27f, 0.22f, 1.f};
@@ -44,33 +47,38 @@ void render_world(SDL_Window* window, SDL_Renderer* renderer, World& world)
     std::vector<SDL_FRect> backBars;
     std::vector<SDL_FRect> healthBars;
     std::vector<SDL_FRect> staminaBars;
-    for (const auto& object : world.get_objects()) {
+
+    for (const auto& object : world.get_objects())
+    {
         auto transform = object->get_component<Transform2D>();
         auto health = object->get_component<Health>();
         auto stamina = object->get_component<Stamina>();
+
         if (!transform)
             continue;
+
         if (health)
         {
             Transform2D barTransform = *transform;
             barTransform.sizeX *= 0.1f;
             SDL_FRect dst = worldCamera.to_camera_space(barTransform);
-            dst.x += screenW / 2;
-            dst.y += screenH / 2;
+            dst.x += screenW / 2.f;
+            dst.y += screenH / 2.f;
             backBars.push_back(dst);
             const float value = float(health->current) / float(health->max);
             dst.y += (1.f - value) * dst.h;
             dst.h *= value;
             healthBars.push_back(dst);
         }
+
         if (stamina)
         {
             Transform2D barTransform = *transform;
             barTransform.x += barTransform.sizeX * 0.9f;
             barTransform.sizeX *= 0.1f;
             SDL_FRect dst = worldCamera.to_camera_space(barTransform);
-            dst.x += screenW / 2;
-            dst.y += screenH / 2;
+            dst.x += screenW / 2.f;
+            dst.y += screenH / 2.f;
             backBars.push_back(dst);
             const float value = float(stamina->current) / float(stamina->max);
             dst.y += (1.f - value) * dst.h;
@@ -85,5 +93,4 @@ void render_world(SDL_Window* window, SDL_Renderer* renderer, World& world)
     SDL_RenderFillRects(renderer, healthBars.data(), int(healthBars.size()));
     SDL_SetRenderDrawColorFloat(renderer, staminaColor[0], staminaColor[1], staminaColor[2], staminaColor[3]);
     SDL_RenderFillRects(renderer, staminaBars.data(), int(staminaBars.size()));
-
 }

@@ -1,17 +1,16 @@
 #pragma once
+
 #include "game_object.h"
+#include "transform2d.h"
 #include "restrictor.h"
 #include "stamina.h"
-#include <SDL3/SDL.h>
-#include <algorithm>
 
-class Enemy : public Component {
-private:
-    // change transform by 1.0 unit when accumulatedDelta reaches 1.0
-    float accumulatedTime;
 
+class Enemy : public Component
+{
 public:
-    void on_update(float dt) override {
+    void on_update(float dt) override
+    {
         auto transform = get_owner()->get_component<Transform2D>();
         auto restrictor = get_owner()->get_component<IRestrictor>();
         auto stamina = get_owner()->get_component<Stamina>();
@@ -26,9 +25,14 @@ public:
         int i = rand() % 4;
         int2 intDelta = directions[i];
         int2 newPos = int2((int)transform->x + intDelta.x, (int)transform->y + intDelta.y);
-        if (restrictor->can_pass(newPos)) {
+        if (restrictor->can_pass(newPos))
+        {
             transform->x += intDelta.x;
             transform->y += intDelta.y;
         }
     }
+
+private:
+    // change transform by 1.0 unit when accumulatedDelta reaches 1.0
+    float accumulatedTime;
 };

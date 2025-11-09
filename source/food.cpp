@@ -1,38 +1,51 @@
+#include "food.h"
+
 #include "food_generator.h"
 #include "tileset.h"
 #include "world.h"
 #include "transform2d.h"
 #include "health.h"
 #include "stamina.h"
-#include "background_tag.h"
 
 
-class HealthFood : public IFood {
-
+class HealthFood : public IFood
+{
 public:
-    int healthRestore;
-    HealthFood(int healthRestore) : healthRestore(healthRestore) {}
-    void on_consume(GameObjectPtr consumer) override {
+    HealthFood(int healthRestore)
+        : healthRestore(healthRestore) {}
+
+    void on_consume(GameObjectPtr consumer) override
+    {
         auto health = consumer->get_component<Health>();
-        if (health) {
+        if (health)
+        {
             health->change(healthRestore);
             get_owner()->get_world()->destroy_object(get_owner());
         }
     }
-};
-
-class StaminaFood : public IFood {
 
 public:
-    int staminaRestore;
-    StaminaFood(int staminaRestore) : staminaRestore(staminaRestore) {}
-    void on_consume(GameObjectPtr consumer) override {
+    int healthRestore;
+};
+
+class StaminaFood : public IFood
+{
+public:
+    StaminaFood(int staminaRestore)
+        : staminaRestore(staminaRestore) {}
+
+    void on_consume(GameObjectPtr consumer) override
+    {
         auto stamina = consumer->get_component<Stamina>();
-        if (stamina) {
+        if (stamina)
+        {
             stamina->change(staminaRestore);
             get_owner()->get_world()->destroy_object(get_owner());
         }
     }
+
+public:
+    int staminaRestore;
 };
 
 static GameObjectPtr create_food_abstract(World &world, Sprite sprite, int2 position, IFood *foodComp)
@@ -41,41 +54,40 @@ static GameObjectPtr create_food_abstract(World &world, Sprite sprite, int2 posi
     foodObj->add_component<Transform2D>(position.x, position.y);
     foodObj->add_component<Sprite>(sprite); // add appropriate sprite
     foodObj->add_component<IFood>(foodComp); // add appropriate food component
-    foodObj->add_component<BackGroundTag>();
     return foodObj;
 }
 
-class HealthFoodFabrique : public IFoodFabrique {
-    World &world;
-    Sprite sprite;
-    int healthRestore;
-    int weightValue;
+class HealthFoodFabrique : public IFoodFabrique
+{
 public:
     HealthFoodFabrique(World &world, Sprite sprite, int healthRestore, int weightValue)
         : world(world), sprite(sprite), healthRestore(healthRestore), weightValue(weightValue) {}
 
-    virtual GameObjectPtr create_food(int2 position) override
-    {
-        return create_food_abstract(world, sprite, position, (IFood *)(new HealthFood(healthRestore)));
-    }
+    virtual GameObjectPtr create_food(int2 position) override {  return create_food_abstract(world, sprite, position, (IFood *)(new HealthFood(healthRestore))); }
     virtual int weight() const override { return weightValue; } // for random selection
+
+private:
+    World &world;
+    Sprite sprite;
+    int healthRestore;
+    int weightValue;
 };
 
 
-class StaminaFoodFabrique : public IFoodFabrique {
-    World &world;
-    Sprite sprite;
-    int staminaRestore;
-    int weightValue;
+class StaminaFoodFabrique : public IFoodFabrique
+{
 public:
     StaminaFoodFabrique(World &world, Sprite sprite, int staminaRestore, int weightValue)
         : world(world), sprite(sprite), staminaRestore(staminaRestore), weightValue(weightValue) {}
 
-    virtual GameObjectPtr create_food(int2 position) override
-    {
-        return create_food_abstract(world, sprite, position, (IFood *)(new StaminaFood(staminaRestore)));
-    }
+    virtual GameObjectPtr create_food(int2 position) override { return create_food_abstract(world, sprite, position, (IFood *)(new StaminaFood(staminaRestore))); }
     virtual int weight() const override { return weightValue; } // for random selection
+
+private:
+    World &world;
+    Sprite sprite;
+    int staminaRestore;
+    int weightValue;
 };
 
 std::vector<std::unique_ptr<IFoodFabrique>> create_food_fabriques(World &world, TileSet &tileset)
