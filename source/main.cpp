@@ -7,9 +7,6 @@
 #include <memory>
 
 
-void init_world(SDL_Renderer* renderer, World& world);
-void render_world(SDL_Window* window, SDL_Renderer* renderer, World& world);
-
 int main(int argc, char* argv[])
 {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
@@ -44,7 +41,7 @@ int main(int argc, char* argv[])
         {
             OPTICK_EVENT("world.init");
             // Инициализация всех игровых объектов
-            init_world(renderer, *world);
+            world->init(renderer);
         }
 
         bool quit = false;
@@ -80,7 +77,7 @@ int main(int argc, char* argv[])
             {
                 OPTICK_EVENT("world.render");
                 // Отрисовка всех игровых объектов
-                render_world(window, renderer, *world);
+                world->render(window, renderer);
             }
             SDL_RenderPresent(renderer);
         }

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "sprite.h"
+#include "image.h"
+#include "components/sprite.h"
 
 #include <string>
 #include <map>
@@ -28,7 +29,7 @@ struct TileSet
 
     void add_tile(const std::string& name, int i, int j)
     {
-        const int tileSize = 16;
+        constexpr int tileSize = 16;
         tiles[name] = Sprite(tileset, SDL_FRect{float(j * (tileSize + 1)), float(i * (tileSize + 1)), float(tileSize), float(tileSize)});
     }
 

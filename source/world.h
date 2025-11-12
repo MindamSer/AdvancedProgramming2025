@@ -1,61 +1,31 @@
 #pragma once
 
-#include "camera2d.h"
-#include "game_object.h"
-#include "transform2d.h"
-#include "sprite.h"
+#include "archetypes/entity.h"
+#include "archetypes/tile.h"
+
+#include "components/camera2d.h"
+
+#include "hero.h"
+#include "tileset.h"
+#include "dungeon_generator.h"
 
 #include <memory>
-#include <vector>
 
 
-class World : public std::enable_shared_from_this<World>
+struct World
 {
 public:
-    struct TileObject
-    {
-        Sprite sprite;
-        Transform2D transform;
-    };
+    void init(SDL_Renderer* renderer);
+    void update(float dt);
+    void render(SDL_Window* window, SDL_Renderer* renderer);
 
 public:
-    std::shared_ptr<GameObject> create_object()
-    {
-        auto obj = std::make_shared<GameObject>();
-        obj->world = shared_from_this();
-        delayedAdd.push_back(obj);
-        return obj;
-    }
-
-    void destroy_object(std::shared_ptr<GameObject> obj) { delayedRemove.push_back(obj); }
-
-    void update(float dt)
-    {
-        for (auto& obj : delayedRemove)
-            objects.erase(std::remove(objects.begin(), objects.end(), obj), objects.end());
-        delayedRemove.clear();
-
-        for (auto& obj : delayedAdd)
-            objects.push_back(obj);
-        delayedAdd.clear();
-
-        for (auto& obj : objects)
-            obj->update(dt);
-    }
-
-    const std::vector<std::shared_ptr<GameObject>>& get_objects() const { return objects; }
-
-
-    std::vector<TileObject>& get_backgroung_tiles() { return backgroundTiles; }
-    const std::vector<TileObject>& get_backgroung_tiles() const { return backgroundTiles; }
-
-    Camera2D& get_camera() { return mainCamera; }
-    const Camera2D& get_camera() const { return mainCamera; }
-
-private:
-    std::vector<std::shared_ptr<GameObject>> objects, delayedRemove, delayedAdd;
-
     Camera2D mainCamera;
+    std::shared_ptr<Dungeon> dungeon;
 
-    std::vector<TileObject> backgroundTiles;
+    std::unique_ptr<TileSet> tileset;
+    tileArchetype backgroundTiles;
+
+    std::unique_ptr<Hero> mainHero;
+    entityArchetype enemies;
 };

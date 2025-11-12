@@ -1,3 +1,4 @@
+/*
 #include "food.h"
 
 #include "food_generator.h"
@@ -100,3 +101,5 @@ std::vector<std::unique_ptr<IFoodFabrique>> create_food_fabriques(World &world, 
     fabriques.push_back(std::make_unique<StaminaFoodFabrique>(world, tileset.get_tile("stamina_large"), 25, 20));
     return fabriques;
 }
+
+*/
