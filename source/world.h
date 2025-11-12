@@ -5,9 +5,10 @@
 
 #include "components/camera2d.h"
 
-#include "hero.h"
+#include "systems/moveSystem.h"
+
+#include "dungeon.h"
 #include "tileset.h"
-#include "dungeon_generator.h"
 
 #include <memory>
 
@@ -21,11 +22,12 @@ public:
 
 public:
     Camera2D mainCamera;
-    std::shared_ptr<Dungeon> dungeon;
+    std::unique_ptr<Dungeon> dungeon;
 
     std::unique_ptr<TileSet> tileset;
     tileArchetype backgroundTiles;
 
-    std::unique_ptr<Hero> mainHero;
-    entityArchetype enemies;
+    EntityArchetype entities;
+
+    MoveSystem moveSys;
 };

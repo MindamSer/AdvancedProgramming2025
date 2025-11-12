@@ -1,57 +1,91 @@
 #pragma once
 
 #include "components/transform2d.h"
-#include "components/dungeon_restrictor.h"
 #include "components/sprite.h"
+#include "components/dungeonPtr.h"
 #include "components/bar.h"
+#include "components/camera2d.h"
 
 #include <vector>
 #include <algorithm>
 
 
-struct entityArchetype
+struct EntityArchetype
 {
 public:
     std::vector<Transform2D> positions;
-    std::vector<DungeonRestrictor> restrictors;
     std::vector<Sprite> sprites;
+    std::vector<Dungeon *> dungeonPtrs;
 
     std::vector<HealthBar> healthBars;
     std::vector<StaminaBar> staminaBars;
 
-    std::vector<float> accumulatedTimes;
+    std::vector<bool> isBots;
     std::vector<bool> isPredators;
+    std::vector<Camera2D *> cameras;
+
+    std::vector<float> moveCooldowns;
 
 public:
     void reserve(size_t n)
     {
         positions.reserve(n);
-        restrictors.reserve(n);
         sprites.reserve(n);
+        dungeonPtrs.reserve(n);
 
         healthBars.reserve(n);
         staminaBars.reserve(n);
 
-        accumulatedTimes.reserve(n);
+        isBots.reserve(n);
         isPredators.reserve(n);
+        cameras.reserve(n);
+
+        moveCooldowns.reserve(n);
 
         deleteQueue.reserve(n);
     }
 
-    void addEntity(Transform2D position, DungeonRestrictor dungeon, Sprite sprite, HealthBar health, StaminaBar stamina, bool predator)
+    void clear()
+    {
+        positions.clear();
+        sprites.clear();
+        dungeonPtrs.clear();
+
+        healthBars.clear();
+        staminaBars.clear();
+
+        isBots.clear();
+        isPredators.clear();
+        cameras.clear();
+
+        moveCooldowns.clear();
+
+        deleteQueue.clear();
+    }
+
+    size_t size() { return positions.size(); }
+
+    size_t add(Transform2D position, Sprite sprite, Dungeon *dungeonPtr = nullptr, HealthBar health = {100}, StaminaBar stamina = {100}, bool bot = true, bool predator = false, Camera2D *cameraPtr = nullptr)
     {
         positions.push_back(position);
-        restrictors.push_back(dungeon);
+        dungeonPtrs.push_back(dungeonPtr);
         sprites.push_back(sprite);
 
         healthBars.push_back(health);
         staminaBars.push_back(stamina);
 
-        accumulatedTimes.push_back(0.f);
+        isBots.push_back(bot);
         isPredators.push_back(predator);
+        cameras.push_back(cameraPtr);
+
+        moveCooldowns.push_back(0.f);
+
+        return positions.size();
     }
 
-    void queueDeletion(size_t index) { deleteQueue.push_back(index); }
+
+    void deleteAt(size_t index) { deleteQueue.push_back(index); }
+
     void performDeletion()
     {
         if (deleteQueue.empty())
@@ -66,13 +100,13 @@ public:
         for (size_t i = 0; i < deleteQueue.size(); ++i, --whereToPlace, --indexInQueue)
         {
             MOVE_DEL_TO_END(positions)
-            MOVE_DEL_TO_END(restrictors)
+            MOVE_DEL_TO_END(dungeonPtrs)
             MOVE_DEL_TO_END(sprites)
 
             MOVE_DEL_TO_END(healthBars)
             MOVE_DEL_TO_END(staminaBars)
 
-            MOVE_DEL_TO_END(accumulatedTimes)
+            MOVE_DEL_TO_END(moveCooldowns)
             MOVE_DEL_TO_END(isPredators)
         }
         #undef DEL_N_LAST_FROM
@@ -82,13 +116,13 @@ public:
         #define DEL_N_LAST_FROM(ARR) ARR.erase(ARR.end() - N, ARR.end());
         {
             DEL_N_LAST_FROM(positions)
-            DEL_N_LAST_FROM(restrictors)
+            DEL_N_LAST_FROM(dungeonPtrs)
             DEL_N_LAST_FROM(sprites)
 
             DEL_N_LAST_FROM(healthBars)
             DEL_N_LAST_FROM(staminaBars)
 
-            DEL_N_LAST_FROM(accumulatedTimes)
+            DEL_N_LAST_FROM(moveCooldowns)
             DEL_N_LAST_FROM(isPredators)
         }
         #undef DEL_N_LAST_FROM

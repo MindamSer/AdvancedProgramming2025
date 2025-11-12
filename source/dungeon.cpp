@@ -1,4 +1,4 @@
-#include "dungeon_generator.h"
+#include "dungeon.h"
 
 #include <utility>
 
@@ -9,13 +9,19 @@ constexpr int ROOM_MIN_HEIGHT = 4;
 constexpr int ROOM_MAX_HEIGHT = 8;
 
 
-const int2  Dungeon::TileGrid::getNthTilePosition(int n, const Tile target) const
+int Dungeon::TileGrid::getFloorCount() const
+{
+    countFloor();
+    return floorCount;
+}
+
+int2 Dungeon::TileGrid::getNthTilePosition(int n, const Tile target) const
 {
     for (int i = 0; i < tiles.size(); ++i)
         if (tiles[i] == target)
         {
             if (n == 0)
-                return int2{i % w, i / w};
+                return int2{i % width, i / width};
             --n;
         }
 
@@ -31,7 +37,7 @@ void Dungeon::TileGrid::setRectangle(int2 p0, int2 p1, const Tile target)
 
     for (int j = p0.y; j <= p1.y; ++j)
         for (int i = p0.x; i <= p1.x; ++i)
-            tiles[j * w + i] = target;
+            tiles[j * width + i] = target;
 
     floorCounted = false;
 }
@@ -43,7 +49,7 @@ void Dungeon::TileGrid::setLine(int2 p0, int2 p1, const Tile target)
         if (p0.x > p1.x)
             std::swap(p0, p1);
         for (int i = p0.x; i <= p1.x; ++i)
-            tiles[p0.y * w + i] = target;
+            tiles[p0.y * width + i] = target;
 
         floorCounted = false;
 
@@ -55,7 +61,7 @@ void Dungeon::TileGrid::setLine(int2 p0, int2 p1, const Tile target)
         if (p0.y > p1.y)
             std::swap(p0, p1);
         for (int j = p0.y; j <= p1.y; ++j)
-            tiles[j * w + p0.x] = target;
+            tiles[j * width + p0.x] = target;
 
         floorCounted = false;
 
@@ -76,12 +82,15 @@ void Dungeon::TileGrid::countFloor() const
 }
 
 
-int2 Dungeon::getRandomFloorPosition() const
+bool Dungeon::canPass(int2 coordinates) const
 {
-    // Возвращает случайную позицию напольного тайла
-    // Не эффективно для больших карт, но сойдет для примера
-    grid.countFloor();
-    return grid.getNthTilePosition(std::uniform_int_distribution<int>(0, grid.getFloorCount() - 1)(randEng), FLOOR);
+    const int x = coordinates.x;
+    const int y = coordinates.y;
+
+    if (x < 0 || y < 0 || y >= (int)grid.getHeight() || x >= (int)grid.getWidth())
+        return false;
+
+    return grid.getTile(x, y) == Dungeon::FLOOR;
 }
 
 void Dungeon::generate(const int roomAttempts)

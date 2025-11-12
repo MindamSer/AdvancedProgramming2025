@@ -17,15 +17,17 @@ struct tileArchetype
         sprites.reserve(n);
     }
 
-    void add(Transform2D position, Sprite sprite)
-    {
-        positions.push_back(position);
-        sprites.push_back(sprite);
-    }
-
     void clear()
     {
         positions.clear();
         sprites.clear();
+    }
+
+    size_t size() { return positions.size(); }
+
+    void add(Transform2D position, Sprite sprite)
+    {
+        positions.push_back(position);
+        sprites.push_back(sprite);
     }
 };

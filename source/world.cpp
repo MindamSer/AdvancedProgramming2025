@@ -1,14 +1,18 @@
 #include "world.h"
+#include "dungeon.h"
 
 #include <iostream>
+#include <memory>
 
 
 constexpr int LevelWidth = 120;
 constexpr int LevelHeight = 50;
 constexpr int RoomAttempts = 100;
+
 constexpr int BotPopulationCount = 100;
 constexpr float PredatorProbability = 0.2f;
 constexpr int InitialFoodAmount = 100;
+constexpr int SotfMaxEntityCount = BotPopulationCount * 4;
 
 
 void World::init(SDL_Renderer* renderer)
@@ -24,7 +28,8 @@ void World::init(SDL_Renderer* renderer)
 
     // creating camera and dungeon
     mainCamera = Camera2D(0.f, 0.f, 32.f);
-    dungeon = std::make_shared<Dungeon>(LevelWidth, LevelHeight, RoomAttempts);
+    dungeon = std::make_unique<Dungeon>(LevelWidth, LevelHeight, RoomAttempts);
+
     const auto &dungeonGrid = dungeon->getGrid();
     const size_t tileCount = dungeonGrid.getTileCount();
 
@@ -49,79 +54,63 @@ void World::init(SDL_Renderer* renderer)
             }
     }
 
-    // creating main hero
+
+
+    // creating entities
     {
+        entities.reserve(SotfMaxEntityCount);
+
+        // creating hero
         const auto heroPos = dungeon->getRandomFloorPosition();
+        mainCamera.position = Transform2D(heroPos.x, heroPos.y);
+        entities.add(
+            Transform2D(heroPos.x, heroPos.y),
+            tileset->get_tile("knight"),
+            dungeon.get(),
+            {100},
+            {100},
+            false,
+            false,
+            &mainCamera
+        );
 
-        mainHero = std::make_unique<Hero>(100, 100);
-        mainHero->position = Transform2D(heroPos.x, heroPos.y);
-        mainHero->sprite = tileset->get_tile("knight");
-        mainHero->bindCamera(mainCamera);
-        mainHero->bindDungeon(*dungeon);
-    }
-
-    // creating npcs
-    {
-        enemies.reserve(BotPopulationCount);
-
-        for (int i = 0; i < BotPopulationCount; ++i) {
-            const bool isPredator = (rand() % 100) < int(PredatorProbability * 100.f);
+        // creating npcs
+        for (int i = 0; i < BotPopulationCount; ++i)
+        {
             const auto enemyPos = dungeon->getRandomFloorPosition();
+            const bool isPredator = (rand() % 100) < int(PredatorProbability * 100.f);
 
-            enemies.addEntity(
+            entities.add(
                 Transform2D(enemyPos.x, enemyPos.y),
-                DungeonRestrictor(dungeon.get()),
                 isPredator ? tileset->get_tile("ghost") : tileset->get_tile("peasant"),
-                HealthBar(100),
-                StaminaBar(100),
+                dungeon.get(),
+                {100},
+                {100},
+                true,
                 isPredator
             );
         }
     }
 
-
-    // auto foodFabriques = create_food_fabriques(world, tileset);
-    // auto foodGenerator = world.create_object();
-    // auto generatorComp = foodGenerator->add_component<FoodGenerator>(dungeon, std::move(foodFabriques), 2.f / RoomAttempts);
-    // for (int i = 0; i < InitialFoodAmount; i++)
-    //     generatorComp->generate_random_food();
-    // auto starvation = world.create_object();
-    // starvation->add_component<StarvationSystem>();
-    // auto tiredness = world.create_object();
-    // tiredness->add_component<TirednessSystem>();
+    // creating food generators
+    {
+        // auto foodFabriques = create_food_fabriques(world, tileset);
+        // auto foodGenerator = world.create_object();
+        // auto generatorComp = foodGenerator->add_component<FoodGenerator>(dungeon, std::move(foodFabriques), 2.f / RoomAttempts);
+        // for (int i = 0; i < InitialFoodAmount; i++)
+        //     generatorComp->generate_random_food();
+        // auto starvation = world.create_object();
+        // starvation->add_component<StarvationSystem>();
+        // auto tiredness = world.create_object();
+        // tiredness->add_component<TirednessSystem>();
+    }
 }
 
 void World::update(float dt)
 {
-    mainHero->update(dt);
+    entities.performDeletion();
 
-    enemies.performDeletion();
-    for (size_t i = 0; i < enemies.positions.size(); ++i)
-    {
-        auto &position = enemies.positions[i];
-        auto &restrictor = enemies.restrictors[i];
-        auto &accumulatedTime = enemies.accumulatedTimes[i];
-        auto &stamina = enemies.staminaBars[i];
-
-        accumulatedTime += dt * stamina.getSpeed();
-        if (accumulatedTime < 1.0f)
-            continue;
-        accumulatedTime -= 1.0f;
-
-        const int2 directions [] = {
-            int2{1,0},
-            int2{-1,0},
-            int2{0,1},
-            int2{0,-1}
-        };
-        int2 move = directions[rand() % 4];
-
-        if (restrictor.canPass(int2(static_cast<int>(position.x) + move.x, static_cast<int>(position.y) + move.y)))
-        {
-            position.x += move.x;
-            position.y += move.y;
-        }
-    }
+    moveSys.process(dt, entities);
 }
 
 constexpr float GREY[4] = {0.2f, 0.2f, 0.2f, 1.f};
@@ -152,58 +141,25 @@ void World::render(SDL_Window* window, SDL_Renderer* renderer)
     // Draw entities
     {
         // draw sprites
-        for (size_t i = 0; i < enemies.positions.size(); ++i)
+        for (size_t i = 0; i < entities.positions.size(); ++i)
         {
-            SDL_FRect dst = mainCamera.toCameraSpace(enemies.positions[i]);
+            SDL_FRect dst = mainCamera.toCameraSpace(entities.positions[i]);
             dst.x += screenW / 2.f;
             dst.y += screenH / 2.f;
-            draw_strite(renderer, enemies.sprites[i], dst);
-        }
-        {
-            SDL_FRect dst = mainCamera.toCameraSpace(mainHero->position);
-            dst.x += screenW / 2.f;
-            dst.y += screenH / 2.f;
-            draw_strite(renderer, mainHero->sprite, dst);
+            draw_strite(renderer, entities.sprites[i], dst);
         }
 
         // draw bars
         {
-            static std::vector<SDL_FRect> backBars(BotPopulationCount + 1);
-            static std::vector<SDL_FRect> healthBars(BotPopulationCount + 1);
-            static std::vector<SDL_FRect> staminaBars(BotPopulationCount + 1);
+            static std::vector<SDL_FRect> backBars(SotfMaxEntityCount);
+            static std::vector<SDL_FRect> healthBars(SotfMaxEntityCount);
+            static std::vector<SDL_FRect> staminaBars(SotfMaxEntityCount);
 
+            for (size_t i = 0; i < entities.positions.size(); ++i)
             {
-                Transform2D healthBarTransform = mainHero->position;
-                healthBarTransform.sizeX *= 0.1f;
-                SDL_FRect healthDst = mainCamera.toCameraSpace(healthBarTransform);
-                healthDst.x += screenW / 2.f;
-                healthDst.y += screenH / 2.f;
-                backBars.push_back(healthDst);
-
-                const float healthFrac = float(mainHero->health.getValue()) / float(mainHero->health.getMax());
-                healthDst.y += (1.f - healthFrac) * healthDst.h;
-                healthDst.h *= healthFrac;
-                healthBars.push_back(healthDst);
-
-
-                Transform2D staminaBarTransform = mainHero->position;
-                staminaBarTransform.x += staminaBarTransform.sizeX * 0.9f;
-                staminaBarTransform.sizeX *= 0.1f;
-                SDL_FRect staminaDst = mainCamera.toCameraSpace(staminaBarTransform);
-                staminaDst.x += screenW / 2.f;
-                staminaDst.y += screenH / 2.f;
-                backBars.push_back(staminaDst);
-
-                const float staminaFrac = float(mainHero->stamina.getValue()) / float(mainHero->stamina.getMax());
-                staminaDst.y += (1.f - staminaFrac) * staminaDst.h;
-                staminaDst.h *= staminaFrac;
-                staminaBars.push_back(staminaDst);
-            }
-            for (size_t i = 0; i < enemies.positions.size(); ++i)
-            {
-                const auto &entityPos = enemies.positions[i];
-                const auto &entityHeath = enemies.healthBars[i];
-                const auto &entityStamina = enemies.staminaBars[i];
+                const auto entityPos = entities.positions[i];
+                const auto entityHeath = entities.healthBars[i];
+                const auto entityStamina = entities.staminaBars[i];
 
 
                 Transform2D healthBarTransform = entityPos;
