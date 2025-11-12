@@ -113,6 +113,7 @@ void World::update(float dt)
     moveSys.process(dt, entities);
     starveSys.process(dt, entities);
     tiredSys.process(dt, entities);
+    predSys.process(dt, entities);
 }
 
 constexpr float GREY[4] = {0.2f, 0.2f, 0.2f, 1.f};

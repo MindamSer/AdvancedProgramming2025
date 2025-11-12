@@ -100,30 +100,36 @@ public:
         for (size_t i = 0; i < deleteQueue.size(); ++i, --whereToPlace, --indexInQueue)
         {
             MOVE_DEL_TO_END(positions)
-            MOVE_DEL_TO_END(dungeonPtrs)
             MOVE_DEL_TO_END(sprites)
+            MOVE_DEL_TO_END(dungeonPtrs)
 
             MOVE_DEL_TO_END(healthBars)
             MOVE_DEL_TO_END(staminaBars)
 
-            MOVE_DEL_TO_END(moveCooldowns)
+            MOVE_DEL_TO_END(isBots)
             MOVE_DEL_TO_END(isPredators)
+            MOVE_DEL_TO_END(cameras)
+
+            MOVE_DEL_TO_END(moveCooldowns)
         }
         #undef DEL_N_LAST_FROM
 
-        const size_t N = positions.size();
+        const size_t N = deleteQueue.size();
 
         #define DEL_N_LAST_FROM(ARR) ARR.erase(ARR.end() - N, ARR.end());
         {
             DEL_N_LAST_FROM(positions)
-            DEL_N_LAST_FROM(dungeonPtrs)
             DEL_N_LAST_FROM(sprites)
+            DEL_N_LAST_FROM(dungeonPtrs)
 
             DEL_N_LAST_FROM(healthBars)
             DEL_N_LAST_FROM(staminaBars)
 
-            DEL_N_LAST_FROM(moveCooldowns)
+            DEL_N_LAST_FROM(isBots)
             DEL_N_LAST_FROM(isPredators)
+            DEL_N_LAST_FROM(cameras)
+
+            DEL_N_LAST_FROM(moveCooldowns)
         }
         #undef DEL_N_LAST_FROM
 

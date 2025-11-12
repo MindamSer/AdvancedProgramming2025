@@ -8,6 +8,7 @@
 #include "systems/moveSystem.h"
 #include "systems/starvationSystem.h"
 #include "systems/tirednessSystem.h"
+#include "systems/predatorSystem.h"
 
 #include "dungeon.h"
 #include "tileset.h"
@@ -34,4 +35,5 @@ public:
     MoveSystem moveSys;
     StarvationSystem starveSys;
     TirednessSystem tiredSys;
+    PredatorSystem predSys;
 };
