@@ -1,6 +1,6 @@
 #pragma once
 
-#include "archetypes/entity.h"
+#include "baseSystem.h"
 
 #include "dungeon.h"
 #include "math2d.h"
@@ -14,10 +14,10 @@ const int2 directions[4] = {
 };
 
 
-class MoveSystem
+class MoveSystem : BaseSystem
 {
 public:
-    void process(float dt, EntityArchetype &entities)
+    void process(float dt, EntityArchetype &entities) override
     {
         for (size_t i = 0; i < entities.size(); ++i)
         {
