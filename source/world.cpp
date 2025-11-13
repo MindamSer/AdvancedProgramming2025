@@ -12,7 +12,9 @@ constexpr int RoomAttempts = 100;
 constexpr int BotPopulationCount = 100;
 constexpr float PredatorProbability = 0.2f;
 constexpr int InitialFoodAmount = 100;
+
 constexpr int SotfMaxEntityCount = BotPopulationCount * 4;
+constexpr int SotfMaxFoodCount = InitialFoodAmount * 4;
 
 
 void World::init(SDL_Renderer* renderer)
@@ -62,9 +64,9 @@ void World::init(SDL_Renderer* renderer)
 
         // creating hero
         const auto heroPos = dungeon->getRandomFloorPosition();
-        mainCamera.position = Transform2D(heroPos.x, heroPos.y);
+        mainCamera.position = heroPos;
         entities.add(
-            Transform2D(heroPos.x, heroPos.y),
+            heroPos,
             tileset->get_tile("knight"),
             dungeon.get(),
             {100},
@@ -77,11 +79,10 @@ void World::init(SDL_Renderer* renderer)
         // creating npcs
         for (int i = 0; i < BotPopulationCount; ++i)
         {
-            const auto enemyPos = dungeon->getRandomFloorPosition();
             const bool isPredator = (rand() % 100) < int(PredatorProbability * 100.f);
 
             entities.add(
-                Transform2D(enemyPos.x, enemyPos.y),
+                dungeon->getRandomFloorPosition(),
                 isPredator ? tileset->get_tile("ghost") : tileset->get_tile("peasant"),
                 dungeon.get(),
                 {100},
@@ -94,26 +95,34 @@ void World::init(SDL_Renderer* renderer)
 
     // creating food generators
     {
-        // auto foodFabriques = create_food_fabriques(world, tileset);
-        // auto foodGenerator = world.create_object();
-        // auto generatorComp = foodGenerator->add_component<FoodGenerator>(dungeon, std::move(foodFabriques), 2.f / RoomAttempts);
-        // for (int i = 0; i < InitialFoodAmount; i++)
-        //     generatorComp->generate_random_food();
-        // auto starvation = world.create_object();
-        // starvation->add_component<StarvationSystem>();
-        // auto tiredness = world.create_object();
-        // tiredness->add_component<TirednessSystem>();
+        foods.reserve(SotfMaxFoodCount);
+
+        // for now just make some food for test
+        for (size_t i = 0; i < InitialFoodAmount*2; ++i)
+        {
+            const bool isLarge = rand() % 2;
+            const bool isHeath = rand() % 2;
+
+            const int val = isLarge ? 50 : 25;
+            Food foodProp = isHeath ? Food{HeathFood{val}} : Food{StaminaFood{val}};
+            const char *spriteName = isHeath ? (isLarge ? "health_large" : "health_small") : (isLarge ? "stamina_large" : "stamina_small");
+
+            foods.add(dungeon->getRandomFloorPosition(), tileset->get_tile(spriteName), foodProp);
+        }
     }
 }
 
 void World::update(float dt)
 {
     entities.performDeletion();
+    foods.performDeletion();
 
     moveSys.process(dt, entities);
     starveSys.process(dt, entities);
     tiredSys.process(dt, entities);
     predSys.process(dt, entities);
+
+    foodSys.process(dt, entities, foods);
 }
 
 constexpr float GREY[4] = {0.2f, 0.2f, 0.2f, 1.f};
@@ -136,15 +145,21 @@ void World::render(SDL_Window* window, SDL_Renderer* renderer)
         }
     }
 
-    // Draw foreground sprites
+    // Draw foods
     {
-
+        for (size_t i = 0; i < foods.size(); ++i)
+        {
+            SDL_FRect dst = mainCamera.toCameraSpace(foods.positions[i]);
+            dst.x += screenW / 2.f;
+            dst.y += screenH / 2.f;
+            draw_strite(renderer, foods.sprites[i], dst);
+        }
     }
 
     // Draw entities
     {
         // draw sprites
-        for (size_t i = 0; i < entities.positions.size(); ++i)
+        for (size_t i = 0; i < entities.size(); ++i)
         {
             SDL_FRect dst = mainCamera.toCameraSpace(entities.positions[i]);
             dst.x += screenW / 2.f;
@@ -158,7 +173,7 @@ void World::render(SDL_Window* window, SDL_Renderer* renderer)
             static std::vector<SDL_FRect> healthBars(SotfMaxEntityCount);
             static std::vector<SDL_FRect> staminaBars(SotfMaxEntityCount);
 
-            for (size_t i = 0; i < entities.positions.size(); ++i)
+            for (size_t i = 0; i < entities.size(); ++i)
             {
                 const auto entityPos = entities.positions[i];
                 const auto entityHeath = entities.healthBars[i];

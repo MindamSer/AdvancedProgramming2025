@@ -1,6 +1,7 @@
 #pragma once
 
 #include "archetypes/entity.h"
+#include "archetypes/food.h"
 #include "archetypes/tile.h"
 
 #include "components/camera2d.h"
@@ -9,6 +10,7 @@
 #include "systems/starvationSystem.h"
 #include "systems/tirednessSystem.h"
 #include "systems/predatorSystem.h"
+#include "systems/foodSystem.h"
 
 #include "dungeon.h"
 #include "tileset.h"
@@ -31,9 +33,12 @@ public:
     tileArchetype backgroundTiles;
 
     EntityArchetype entities;
+    FoodArchetype foods;
 
     MoveSystem moveSys;
     StarvationSystem starveSys;
     TirednessSystem tiredSys;
     PredatorSystem predSys;
+
+    FoodSystem foodSys;
 };
