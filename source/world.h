@@ -6,11 +6,11 @@
 
 #include "components/camera2d.h"
 
-#include "systems/moveSystem.h"
-#include "systems/starvationSystem.h"
-#include "systems/tirednessSystem.h"
-#include "systems/predatorSystem.h"
-#include "systems/foodSystem.h"
+#include "systems/move.h"
+#include "systems/starvation.h"
+#include "systems/tiredness.h"
+#include "systems/predator.h"
+#include "systems/food.h"
 
 #include "dungeon.h"
 #include "tileset.h"
