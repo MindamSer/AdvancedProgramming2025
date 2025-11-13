@@ -14,6 +14,7 @@
 
 #include "dungeon.h"
 #include "tileset.h"
+#include "foodGenerator.h"
 
 #include <memory>
 
@@ -40,5 +41,6 @@ public:
     TirednessSystem tiredSys;
     PredatorSystem predSys;
 
+    std::unique_ptr<FoodGenerator> foodGenerator;
     FoodSystem foodSys;
 };

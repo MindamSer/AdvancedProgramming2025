@@ -97,18 +97,18 @@ void World::init(SDL_Renderer* renderer)
     {
         foods.reserve(SotfMaxFoodCount);
 
-        // for now just make some food for test
-        for (size_t i = 0; i < InitialFoodAmount*2; ++i)
-        {
-            const bool isLarge = rand() % 2;
-            const bool isHeath = rand() % 2;
-
-            const int val = isLarge ? 50 : 25;
-            Food foodProp = isHeath ? Food{HeathFood{val}} : Food{StaminaFood{val}};
-            const char *spriteName = isHeath ? (isLarge ? "health_large" : "health_small") : (isLarge ? "stamina_large" : "stamina_small");
-
-            foods.add(dungeon->getRandomFloorPosition(), tileset->get_tile(spriteName), foodProp);
-        }
+        foodGenerator = std::make_unique<FoodGenerator>(
+            dungeon.get(),
+            &foods,
+            std::vector<FoodGenerator::WeightedFood>{
+                {HeathFood{25}, tileset->get_tile("health_small"), 1.0f},
+                {HeathFood{50}, tileset->get_tile("health_large"), 1.0f},
+                {StaminaFood{25}, tileset->get_tile("stamina_small"), 1.0f},
+                {StaminaFood{50}, tileset->get_tile("stamina_large"), 1.0f}
+            },
+            0.1,
+            InitialFoodAmount
+        );
     }
 }
 
@@ -122,6 +122,7 @@ void World::update(float dt)
     tiredSys.process(dt, entities);
     predSys.process(dt, entities);
 
+    foodGenerator->update(dt);
     foodSys.process(dt, entities, foods);
 }
 
