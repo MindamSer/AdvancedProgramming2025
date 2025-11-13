@@ -6,7 +6,7 @@
     {
       "label": "cmake configure",
       "type": "shell",
-      "command": "cmake -S . -B build -G Ninja",
+      "command": "cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=${config:launchOption.currentConfig.BuildType}",
       "problemMatcher": [],
       "presentation": {
         "panel": "dedicated",
@@ -16,11 +16,11 @@
     {
       "label": "cmake build",
       "type": "shell",
-      "command": "cmake --build build --config ${config:launchOption.currentConfig.BuildType}",
+      "command": "cmake --build build",
       "problemMatcher": [],
       "presentation": {
         "panel": "dedicated",
-        "clear": true,
+        "clear": true
       }
     },
     {
@@ -30,8 +30,8 @@
       "problemMatcher": [],
       "presentation": {
         "panel": "dedicated",
-        "clear": true,
+        "clear": true
       }
-    },
+    }
   ]
 }
