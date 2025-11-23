@@ -4,6 +4,46 @@
 
 #include <vector>
 #include <random>
+#include <unordered_set>
+
+
+enum Direction : uint32_t
+{
+    UP,
+    UP_LEFT,
+    UP_RIGHT,
+    LEFT,
+    RIGHT,
+    DOWN_LEFT,
+    DOWN_RIGHT,
+    DOWN,
+    COUNT,
+    OPP_SUM = COUNT - 1
+};
+
+static const int2 directionVectors[] = {
+    {0, -1},
+    {-1, -1},
+    {1, -1},
+    {-1, 0},
+    {1, 0},
+    {-1, 1},
+    {1, 1},
+    {0, 1},
+};
+
+static const uint32_t directionCosts[] = {
+    10,
+    14,
+    14,
+    10,
+    10,
+    14,
+    14,
+    10,
+};
+
+using Path = std::vector<Direction>;
 
 
 class Dungeon
@@ -59,8 +99,9 @@ public:
     int getDungeonWidth() const  { return grid.getWidth(); };
     int getDungeonHeight() const { return grid.getHeight(); };
     int2 getRandomFloorPosition() const { return grid.getNthTilePosition(std::uniform_int_distribution<int>(0, grid.getFloorCount() - 1)(randEng), FLOOR); };
+    bool canPass(int2 coordinates) const { return grid.getTile(coordinates.x, coordinates.y) == Dungeon::FLOOR; }
 
-    bool canPass(int2 coordinates) const;
+    Path findPath(int2 from, int2 to, const std::unordered_set<int2> &forbiddenPositions) const;
 
 private:
     mutable std::mt19937 randEng{ std::random_device{}() };

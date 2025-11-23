@@ -1,6 +1,10 @@
 #include "dungeon.h"
 
 #include <utility>
+#include <cstdint>
+#include <set>
+#include <unordered_set>
+#include <unordered_map>
 
 
 constexpr int ROOM_MIN_WIDTH = 4;
@@ -82,16 +86,130 @@ void Dungeon::TileGrid::countFloor() const
 }
 
 
-bool Dungeon::canPass(int2 coordinates) const
+Path Dungeon::findPath(int2 from, int2 to, const std::unordered_set<int2> &forbiddenPositions) const
 {
-    const int x = coordinates.x;
-    const int y = coordinates.y;
+    struct pathStep
+    {
+        int2 pos;
+        uint32_t startDist;
+        uint32_t finishDist;
+    };
 
-    if (x < 0 || y < 0 || y >= (int)grid.getHeight() || x >= (int)grid.getWidth())
-        return false;
+    struct pathComparator
+    {
+        bool operator()(const pathStep &a, const pathStep &b) const { return (a.startDist + a.finishDist) < (b.startDist + b.finishDist); }
+    };
 
-    return grid.getTile(x, y) == Dungeon::FLOOR;
+
+    // cleaning state
+    static std::set<pathStep, pathComparator> openListOrdered;
+    static std::unordered_set<int2> openList;
+    static std::unordered_set<int2> closedList;
+    static std::unordered_map<int2, Direction> dirToPrevPos;
+    openListOrdered.clear();
+    openList.clear();
+    closedList.clear();
+    dirToPrevPos.clear();
+
+
+    // setting initial state
+    for (uint32_t dir = 0; dir < Direction::COUNT; ++dir)
+    {
+        const int2 targetPos = from + directionVectors[dir];
+        if (canPass(targetPos) && !forbiddenPositions.contains(targetPos))
+        {
+            openListOrdered.insert({
+                targetPos,
+                directionCosts[dir],
+                manhattanDist(targetPos, to) * 10,
+            });
+            openList.insert(targetPos);
+            dirToPrevPos.insert_or_assign(targetPos, static_cast<Direction>(Direction::OPP_SUM - dir));
+        }
+    }
+    closedList.insert(from);
+
+
+    // iterating over queued steps
+    while (!openListOrdered.empty())
+    {
+        if (openListOrdered.begin()->finishDist != 0)
+        {
+            const pathStep curStep = *openListOrdered.begin();
+
+            for (uint32_t dir = 0; dir < Direction::COUNT; ++dir)
+            {
+                const int2 targetPos = curStep.pos + directionVectors[dir];
+
+                if (closedList.contains(targetPos))
+                    continue;
+
+                if (openList.contains(targetPos))
+                {
+                    auto openIter = openListOrdered.begin();
+                    while (openIter->pos != targetPos)
+                        ++openIter;
+                    if (curStep.startDist + directionCosts[dir] < openIter->startDist)
+                    {
+                        openListOrdered.erase(openIter);
+                        openListOrdered.insert({
+                            targetPos,
+                            curStep.startDist + directionCosts[dir],
+                            manhattanDist(targetPos, to) * 10,
+                        });
+                        dirToPrevPos.insert_or_assign(targetPos, static_cast<Direction>(Direction::OPP_SUM - dir));
+                    }
+                    continue;
+                }
+
+                if (canPass(targetPos) && !forbiddenPositions.contains(targetPos))
+                {
+                    openListOrdered.insert({
+                        targetPos,
+                        curStep.startDist + directionCosts[dir],
+                        manhattanDist(targetPos, to) * 10,
+                    });
+                    openList.insert(targetPos);
+                    dirToPrevPos.insert_or_assign(targetPos, static_cast<Direction>(Direction::OPP_SUM - dir));
+                }
+            }
+
+            openListOrdered.erase(openListOrdered.begin());
+            openList.erase(curStep.pos);
+            closedList.insert(curStep.pos);
+        }
+        else
+        {
+            openListOrdered.clear();
+            openList.clear();
+            closedList.insert(to);
+        }
+    }
+
+
+    // if there is no direction from finish cell, algorithm didnt find a way to it
+    if (dirToPrevPos.find(to) == dirToPrevPos.end())
+        return {};
+
+    // gathering path
+    Path res;
+    res.reserve(closedList.size());
+
+    // going backwards from destination
+    int2 curPos = to;
+    while (curPos != from)
+    {
+        const Direction dir = dirToPrevPos[curPos];
+        res.push_back(static_cast<Direction>(Direction::OPP_SUM - dir));
+        curPos += directionVectors[dir];
+    }
+    // flipping to get path from starh
+    for (auto front = res.begin(), rear = res.end() - 1; front < rear; ++front, --rear)
+        std::swap(*front, *rear);
+
+    return res;
 }
+
 
 void Dungeon::generate(const int roomAttempts)
 {
