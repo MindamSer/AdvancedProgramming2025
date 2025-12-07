@@ -1,6 +1,9 @@
 #include "world.h"
 #include "dungeon.h"
 
+#include "components/control.h"
+#include "components/ai.h"
+
 #include <iostream>
 #include <memory>
 
@@ -66,14 +69,9 @@ void World::init(SDL_Renderer* renderer)
         const auto heroPos = dungeon->getRandomFloorPosition();
         mainCamera.position = heroPos;
         entities.add(
-            heroPos,
-            tileset->get_tile("knight"),
-            dungeon.get(),
-            {100},
-            {100},
-            false,
-            false,
-            &mainCamera
+            heroPos, tileset->get_tile("knight"), dungeon.get(),
+            {100}, {100},
+            &mainCamera, ControlID::KEYBOARD
         );
 
         // creating npcs
@@ -82,13 +80,9 @@ void World::init(SDL_Renderer* renderer)
             const bool isPredator = (rand() % 100) < int(PredatorProbability * 100.f);
 
             entities.add(
-                dungeon->getRandomFloorPosition(),
-                isPredator ? tileset->get_tile("ghost") : tileset->get_tile("peasant"),
-                dungeon.get(),
-                {100},
-                {100},
-                true,
-                isPredator
+                dungeon->getRandomFloorPosition(), isPredator ? tileset->get_tile("ghost") : tileset->get_tile("peasant"), dungeon.get(),
+                {100}, {100},
+                nullptr, ControlID::AI, AITypeID::DUMMY, isPredator
             );
         }
     }
@@ -121,6 +115,7 @@ void World::update(float dt)
     starveSys.process(dt, entities);
     tiredSys.process(dt, entities);
     predSys.process(dt, entities);
+    aiSys.process(dt, entities);
 
     foodGenerator->update(dt);
     foodSys.process(dt, entities, foods);

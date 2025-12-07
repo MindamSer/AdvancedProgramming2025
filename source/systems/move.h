@@ -2,16 +2,10 @@
 
 #include "base.h"
 
+#include "components/control.h"
+
 #include "dungeon.h"
 #include "math2d.h"
-
-
-const int2 directions[4] = {
-    {1,0},
-    {-1,0},
-    {0,1},
-    {0,-1}
-};
 
 
 class MoveSystem : BaseSystem
@@ -29,42 +23,61 @@ public:
                 continue;
             moveCooldown -= 1.0f;
 
+            const auto input = entities.controls[i];
+
+            if (input == NONE)
+                continue;
+
             auto &position = entities.positions[i];
             auto dungeonPtr = entities.dungeonPtrs[i];
-            auto isBot = entities.isBots[i];
 
-            if (isBot)
+            switch (input)
             {
-                int2 move = directions[rand() % 4];
-
-                if (dungeonPtr && dungeonPtr->canPass(int2(static_cast<int>(position.x) + move.x, static_cast<int>(position.y) + move.y)))
+                case KEYBOARD:
                 {
-                    position.x += move.x;
-                    position.y += move.y;
+                    const bool* keys = SDL_GetKeyboardState(nullptr);
+                    auto camera = entities.cameras[i];
+
+                    int2 move;
+                    bool moved = false;
+                    if (keys[SDL_SCANCODE_W]) { move.y -= 1; moved = true; }
+                    if (keys[SDL_SCANCODE_S]) { move.y += 1; moved = true; }
+                    if (keys[SDL_SCANCODE_A]) { move.x -= 1; moved = true; }
+                    if (keys[SDL_SCANCODE_D]) { move.x += 1; moved = true; }
+                    if (!moved)
+                        continue;
+
+                    if (dungeonPtr && dungeonPtr->canPass(int2(static_cast<int>(position.x) + move.x, static_cast<int>(position.y) + move.y)))
+                    {
+                        position.x += move.x;
+                        position.y += move.y;
+                    }
+
+                    if (camera)
+                        camera->position = position;
                 }
-            }
-            else
-            {
-                const bool* keys = SDL_GetKeyboardState(nullptr);
-                auto camera = entities.cameras[i];
+                break;
 
-                int2 move;
-                bool moved = false;
-                if (keys[SDL_SCANCODE_W]) { move.y -= 1; moved = true; }
-                if (keys[SDL_SCANCODE_S]) { move.y += 1; moved = true; }
-                if (keys[SDL_SCANCODE_A]) { move.x -= 1; moved = true; }
-                if (keys[SDL_SCANCODE_D]) { move.x += 1; moved = true; }
-                if (!moved)
-                    continue;
-
-                if (dungeonPtr && dungeonPtr->canPass(int2(static_cast<int>(position.x) + move.x, static_cast<int>(position.y) + move.y)))
+                case AI:
                 {
-                    position.x += move.x;
-                    position.y += move.y;
-                }
+                    auto &path = entities.paths[i];
 
-                if (camera)
-                    camera->position = position;
+                    if(!path.empty())
+                    {
+                        const auto direction = directionVectors[path.back()];
+                        path.pop_back();
+
+                        if (dungeonPtr && dungeonPtr->canPass(int2(static_cast<int>(position.x) + direction.x, static_cast<int>(position.y) + direction.y)))
+                        {
+                            position.x += direction.x;
+                            position.y += direction.y;
+                        }
+                    }
+                }
+                break;
+
+                default:
+                break;
             }
         }
     }

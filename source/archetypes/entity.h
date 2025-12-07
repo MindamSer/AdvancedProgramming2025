@@ -5,6 +5,10 @@
 #include "components/dungeonPtr.h"
 #include "components/bar.h"
 #include "components/camera2d.h"
+#include "components/control.h"
+#include "components/ai.h"
+
+#include "path.h"
 
 #include <vector>
 #include <algorithm>
@@ -20,10 +24,12 @@ public:
     std::vector<HealthBar> healthBars;
     std::vector<StaminaBar> staminaBars;
 
-    std::vector<bool> isBots;
-    std::vector<bool> isPredators;
     std::vector<Camera2D *> cameras;
+    std::vector<ControlID> controls;
+    std::vector<AITypeID> aiModules;
+    std::vector<bool> isPredators;
 
+    std::vector<Path> paths;
     std::vector<float> moveCooldowns;
 
 public:
@@ -36,10 +42,12 @@ public:
         healthBars.reserve(n);
         staminaBars.reserve(n);
 
-        isBots.reserve(n);
-        isPredators.reserve(n);
         cameras.reserve(n);
+        controls.reserve(n);
+        aiModules.reserve(n);
+        isPredators.reserve(n);
 
+        paths.reserve(n);
         moveCooldowns.reserve(n);
 
         deleteQueue.reserve(n);
@@ -54,10 +62,12 @@ public:
         healthBars.clear();
         staminaBars.clear();
 
-        isBots.clear();
-        isPredators.clear();
         cameras.clear();
+        controls.clear();
+        aiModules.clear();
+        isPredators.clear();
 
+        paths.clear();
         moveCooldowns.clear();
 
         deleteQueue.clear();
@@ -65,19 +75,23 @@ public:
 
     size_t size() { return positions.size(); }
 
-    size_t add(Transform2D position, Sprite sprite, Dungeon *dungeonPtr = nullptr, HealthBar health = {100}, StaminaBar stamina = {100}, bool bot = true, bool predator = false, Camera2D *cameraPtr = nullptr)
+    size_t add(Transform2D position, Sprite sprite, Dungeon *dungeonPtr = nullptr,
+               HealthBar health = {100}, StaminaBar stamina = {100},
+               Camera2D *cameraPtr = nullptr, ControlID inputType = NONE, AITypeID ai = {}, bool predator = false)
     {
         positions.push_back(position);
-        dungeonPtrs.push_back(dungeonPtr);
         sprites.push_back(sprite);
+        dungeonPtrs.push_back(dungeonPtr);
 
         healthBars.push_back(health);
         staminaBars.push_back(stamina);
 
-        isBots.push_back(bot);
-        isPredators.push_back(predator);
         cameras.push_back(cameraPtr);
+        controls.push_back(inputType);
+        aiModules.push_back(ai);
+        isPredators.push_back(predator);
 
+        paths.push_back({});
         moveCooldowns.push_back(0.f);
 
         return positions.size();
@@ -106,10 +120,12 @@ public:
             MOVE_DEL_TO_END(healthBars)
             MOVE_DEL_TO_END(staminaBars)
 
-            MOVE_DEL_TO_END(isBots)
-            MOVE_DEL_TO_END(isPredators)
             MOVE_DEL_TO_END(cameras)
+            MOVE_DEL_TO_END(controls)
+            MOVE_DEL_TO_END(aiModules)
+            MOVE_DEL_TO_END(isPredators)
 
+            MOVE_DEL_TO_END(paths)
             MOVE_DEL_TO_END(moveCooldowns)
         }
         #undef DEL_N_LAST_FROM
@@ -125,10 +141,12 @@ public:
             DEL_N_LAST_FROM(healthBars)
             DEL_N_LAST_FROM(staminaBars)
 
-            DEL_N_LAST_FROM(isBots)
-            DEL_N_LAST_FROM(isPredators)
             DEL_N_LAST_FROM(cameras)
+            DEL_N_LAST_FROM(controls)
+            DEL_N_LAST_FROM(aiModules)
+            DEL_N_LAST_FROM(isPredators)
 
+            DEL_N_LAST_FROM(paths)
             DEL_N_LAST_FROM(moveCooldowns)
         }
         #undef DEL_N_LAST_FROM

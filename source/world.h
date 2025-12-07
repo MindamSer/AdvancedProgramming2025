@@ -10,6 +10,7 @@
 #include "systems/starvation.h"
 #include "systems/tiredness.h"
 #include "systems/predator.h"
+#include "systems/ai.h"
 #include "systems/food.h"
 
 #include "dungeon.h"
@@ -40,6 +41,7 @@ public:
     StarvationSystem starveSys;
     TirednessSystem tiredSys;
     PredatorSystem predSys;
+    AISysytem aiSys;
 
     std::unique_ptr<FoodGenerator> foodGenerator;
     FoodSystem foodSys;
